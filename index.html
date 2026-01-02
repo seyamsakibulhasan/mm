@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Magic Mentors - Leaderboard</title>
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dark: { bg: '#05050f', card: '#0f101a', border: '#1f2133', hover: '#1a1c2e' },
+                        magic: { purple: '#6366f1', gold: '#FFD700', green: '#10B981', blue: '#3b82f6' }
+                    },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #05050f; }
+        ::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
+        [x-cloak] { display: none !important; }
+    </style>
+</head>
+<body class="bg-dark-bg text-gray-300 min-h-screen flex flex-col" 
+      x-data="{ showProfile: false, selectedPlayer: {} }"
+      @open-profile.window="selectedPlayer = $event.detail; showProfile = true">
+
+    <header class="h-20 border-b border-dark-border flex items-center justify-between px-6 md:px-12 bg-dark-card/50 backdrop-blur sticky top-0 z-30">
+        <div class="flex items-center gap-3">
+            <h1 class="text-2xl font-bold text-white tracking-wider">MAGIC<span class="text-magic-purple">MENTORS</span></h1>
+        </div>
+        <div class="hidden md:flex items-center bg-dark-bg border border-dark-border rounded-full px-4 py-2 w-64">
+            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            <input type="text" id="searchInput" placeholder="Search student..." class="bg-transparent border-none outline-none text-sm ml-2 text-white w-full">
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-8 pb-20">
+        
+        <div class="relative bg-gradient-to-r from-blue-900 to-indigo-900 rounded-2xl p-8 mb-12 text-white shadow-2xl overflow-hidden border border-white/10">
+            <div class="absolute top-0 right-0 w-96 h-96 bg-magic-purple opacity-20 rounded-full blur-[100px] transform translate-x-20 -translate-y-20"></div>
+            <div class="relative z-10">
+                <h2 class="text-3xl font-bold mb-2">Dhaka Leaderboard</h2>
+                <p class="text-blue-100 opacity-90">Top performing students across the city.</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+            <div class="bg-dark-card border border-dark-border rounded-2xl p-6 lg:col-span-3 flex flex-col items-center justify-center min-h-[350px]">
+                <h3 class="font-bold text-white text-xl mb-8">Top Performers</h3>
+                <div id="podium-container" class="flex items-end justify-center gap-4 md:gap-8 w-full">
+                    <div class="animate-pulse text-gray-500 text-sm">Loading Top 3...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-dark-card border border-dark-border rounded-2xl overflow-hidden shadow-xl">
+            <div class="grid grid-cols-12 gap-2 p-4 border-b border-dark-border bg-dark-bg/50 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                <div class="col-span-2 md:col-span-1 text-center">Rank</div>
+                <div class="col-span-6 md:col-span-5 pl-2">User Name</div> 
+                <div class="col-span-4 md:col-span-3 text-right">Avg Score</div>
+                <div class="hidden md:block md:col-span-2 text-center">Streak</div>
+                <div class="hidden md:block md:col-span-1 text-right">Badge</div>
+            </div>
+            <div id="list-container" class="divide-y divide-dark-border"></div>
+        </div>
+    </main>
+
+    <div x-show="showProfile" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 backdrop-blur-md" x-transition x-cloak @click="showProfile = false">
+        <div class="bg-dark-card rounded-2xl border border-dark-border w-[450px] max-w-[90%] shadow-2xl overflow-hidden relative" @click.stop>
+            
+            <div class="h-28 bg-gradient-to-r from-blue-900 via-purple-900 to-slate-900"></div>
+            
+            <button @click="showProfile = false" class="absolute top-4 right-4 text-white/50 hover:text-white bg-black/20 p-1 rounded-full backdrop-blur-sm transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+
+            <div class="px-8 pb-8 -mt-12">
+                <div class="flex justify-between items-end mb-4">
+                    <img :src="selectedPlayer.avatar_url || 'https://ui-avatars.com/api/?name=' + selectedPlayer.name + '&background=random'" class="w-24 h-24 rounded-full border-[6px] border-dark-card object-cover bg-gray-800 shadow-lg">
+                    <div :class="`px-4 py-1.5 rounded-full text-xs font-bold border ${selectedPlayer.badgeColor} shadow-sm`" x-text="selectedPlayer.badge"></div>
+                </div>
+                
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold text-white" x-text="selectedPlayer.name"></h2>
+                    <div class="flex items-center gap-2 text-gray-400 text-sm mt-1">
+                        <span x-text="selectedPlayer.city"></span>
+                        <span>•</span>
+                        <span x-text="`Class ${selectedPlayer.class_level} (${selectedPlayer.medium})`"></span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-3 mb-6">
+                    <div class="bg-dark-bg p-3 rounded-xl border border-dark-border text-center">
+                        <div class="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Avg Score</div>
+                        <div class="text-xl font-bold text-white" x-text="selectedPlayer.averageScore.toFixed(0) + '%'"></div>
+                    </div>
+                    <div class="bg-dark-bg p-3 rounded-xl border border-dark-border text-center">
+                        <div class="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Streak</div>
+                        <div class="text-xl font-bold text-orange-500" x-text="'🔥 ' + selectedPlayer.streak"></div>
+                    </div>
+                    <div class="bg-dark-bg p-3 rounded-xl border border-dark-border text-center">
+                        <div class="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Exams</div>
+                        <div class="text-xl font-bold text-magic-purple" x-text="selectedPlayer.total_exams"></div>
+                    </div>
+                </div>
+
+                <div class="space-y-3 bg-dark-bg/50 p-4 rounded-xl border border-dark-border">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-500">Subjects</span>
+                        <span class="text-gray-300 font-medium text-right" x-text="selectedPlayer.subjects"></span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-500">Schedule</span>
+                        <span class="text-gray-300 font-medium" x-text="selectedPlayer.days_per_week + ' @ ' + selectedPlayer.class_time"></span>
+                    </div>
+                     <div class="flex justify-between text-sm">
+                        <span class="text-gray-500">Tutor</span>
+                        <span class="text-gray-300 font-medium" x-text="selectedPlayer.tutor_gender + ' Tutor'"></span>
+                    </div>
+                    <div class="border-t border-dark-border pt-2 flex justify-between text-sm">
+                        <span class="text-gray-500">Joined</span>
+                        <span class="text-gray-300 font-medium" x-text="selectedPlayer.joining_date"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // REPLACE THIS WITH YOUR WORKER URL
+        const WORKER_URL = "https://primary.sibnh.workers.dev/leaderboard"; 
+        
+        let allPlayers = [];
+
+        async function fetchLeaderboard() {
+            try {
+                const response = await fetch(WORKER_URL);
+                if (!response.ok) throw new Error("Failed to fetch");
+                const players = await response.json();
+                allPlayers = players;
+                processAndRender(players);
+            } catch (err) {
+                console.error("Error:", err);
+                document.getElementById('podium-container').innerHTML = '<div class="text-red-500">Failed to load data. Check Worker connection.</div>';
+            }
+        }
+
+        // Search Functionality
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = allPlayers.filter(p => p.name.toLowerCase().includes(term));
+            // Only update list, keep podium as Top 3 always
+            renderList(filtered.slice(3)); 
+            if(term === '') processAndRender(allPlayers); // Reset if empty
+        });
+
+        function processAndRender(players) {
+            const processed = players.map(p => {
+                let badge = 'Bronze';
+                let badgeColor = 'text-gray-400 border-gray-600';
+                let badgeBg = 'bg-gray-700';
+                
+                // Fallback for avatar if null in DB
+                if(!p.avatar_url) {
+                    p.avatar_url = `https://ui-avatars.com/api/?name=${encodeURIComponent(p.name)}&background=random`;
+                }
+
+                // Make sure averageScore is a number
+                const score = Number(p.average_score); 
+
+                if(score >= 90) { 
+                    badge = 'Diamond'; badgeColor = 'text-cyan-300 border-cyan-500 shadow-[0_0_10px_rgba(34,211,238,0.5)]'; badgeBg = 'bg-cyan-900';
+                }
+                else if(score >= 80) { 
+                    badge = 'Platinum'; badgeColor = 'text-slate-200 border-slate-400'; badgeBg = 'bg-slate-700';
+                }
+                else if(score >= 70) { 
+                    badge = 'Gold'; badgeColor = 'text-yellow-300 border-yellow-500'; badgeBg = 'bg-yellow-900';
+                }
+
+                return { ...p, averageScore: score, badge, badgeColor, badgeBg };
+            });
+
+            // Ensure sorted by Score
+            processed.sort((a, b) => b.averageScore - a.averageScore);
+            
+            const topThree = [processed[0], processed[1], processed[2]].filter(Boolean);
+            const rest = processed.slice(3);
+
+            renderPodium(topThree);
+            renderList(rest);
+        }
+
+        function renderPodium(topThree) {
+            const container = document.getElementById('podium-container');
+            container.innerHTML = '';
+            
+            const displayOrder = [];
+            if(topThree[1]) displayOrder.push({ p: topThree[1], rank: 2 });
+            if(topThree[0]) displayOrder.push({ p: topThree[0], rank: 1 });
+            if(topThree[2]) displayOrder.push({ p: topThree[2], rank: 3 });
+
+            displayOrder.forEach(({ p, rank }) => {
+                let isFirst = rank === 1;
+                let blockHeight = isFirst ? 'h-40 md:h-48' : (rank === 2 ? 'h-28 md:h-32' : 'h-20 md:h-24');
+                let ringColor = isFirst ? 'border-yellow-400 shadow-[0_0_20px_rgba(250,204,21,0.3)]' : (rank === 2 ? 'border-gray-300' : 'border-orange-700');
+                let scale = isFirst ? 'scale-110' : 'scale-100';
+
+                let crownHtml = isFirst ? `<div class="absolute -top-12 left-1/2 transform -translate-x-1/2 text-4xl animate-bounce z-20">👑</div>` : '';
+
+                const pString = JSON.stringify(p).replace(/"/g, '&quot;').replace(/'/g, "\\'");
+                
+                container.innerHTML += `
+                <div class="flex flex-col items-center group cursor-pointer w-24 md:w-32 ${scale} transition-transform duration-300" onclick="triggerProfileModal(${pString})">
+                    <div class="relative flex flex-col items-center mb-3 z-10">
+                        <div class="relative inline-block">
+                            ${crownHtml}
+                            <div class="w-16 h-16 md:w-20 md:h-20 rounded-full border-[3px] ${ringColor} p-0.5 bg-dark-card overflow-hidden relative z-10">
+                                <img src="${p.avatar_url}" class="w-full h-full object-cover rounded-full">
+                            </div>
+                            <div class="absolute -bottom-3 left-1/2 transform -translate-x-1/2 w-6 h-6 rounded-full bg-dark-card border border-gray-600 flex items-center justify-center text-white font-bold text-xs shadow-md z-20">
+                                ${rank}
+                            </div>
+                        </div>
+                        <div class="text-center mt-4">
+                            <div class="text-white font-bold text-sm md:text-base truncate w-24 md:w-32">${p.name}</div>
+                            <div class="text-magic-purple text-xs md:text-sm font-bold">${p.averageScore.toFixed(0)}%</div>
+                        </div>
+                    </div>
+                    <div class="w-full ${blockHeight} bg-gradient-to-t from-dark-bg to-dark-card rounded-t-lg border-x border-t border-white/5 relative overflow-hidden group-hover:border-magic-purple/30 transition-colors">
+                        <div class="absolute inset-0 bg-magic-purple/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    </div>
+                </div>`;
+            });
+        }
+
+        function renderList(list) {
+            const container = document.getElementById('list-container');
+            container.innerHTML = '';
+            list.forEach((p, index) => {
+                let rank = index + 4;
+                const pString = JSON.stringify(p).replace(/"/g, '&quot;').replace(/'/g, "\\'");
+                container.innerHTML += `
+                <div class="grid grid-cols-12 gap-2 p-4 items-center hover:bg-dark-hover transition group cursor-pointer border-b border-dark-border last:border-0" onclick="triggerProfileModal(${pString})">
+                    <div class="col-span-2 md:col-span-1 flex justify-center">
+                        <span class="w-6 h-6 flex items-center justify-center bg-dark-bg border border-dark-border rounded text-xs font-bold text-gray-500 group-hover:text-white">${rank}</span>
+                    </div>
+                    <div class="col-span-6 md:col-span-5 flex items-center gap-3 pl-2">
+                        <img src="${p.avatar_url}" class="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover border border-dark-border">
+                        <div>
+                            <div class="font-bold text-sm text-white truncate max-w-[100px] md:max-w-none hover:text-magic-purple hover:underline">${p.name}</div>
+                            <div class="text-[10px] text-gray-500 md:hidden">Class ${p.class_level}</div>
+                        </div>
+                    </div>
+                    <div class="col-span-4 md:col-span-3 text-right">
+                        <div class="font-bold text-white text-sm">${p.averageScore.toFixed(1)}%</div>
+                        <div class="w-full md:w-24 bg-gray-800 h-1 rounded-full mt-1 ml-auto">
+                            <div class="bg-magic-purple h-1 rounded-full" style="width: ${p.averageScore}%"></div>
+                        </div>
+                    </div>
+                    <div class="hidden md:block md:col-span-2 text-center text-xs text-gray-400">
+                        <div class="font-bold text-orange-500">🔥 ${p.streak}</div>
+                    </div>
+                    <div class="hidden md:flex md:col-span-1 justify-end">
+                        <span class="px-2 py-1 rounded text-[10px] font-bold ${p.badgeBg} text-white border border-white/10 shadow-sm">
+                            ${p.badge}
+                        </span>
+                    </div>
+                </div>`;
+            });
+        }
+
+        function triggerProfileModal(playerData) {
+            window.dispatchEvent(new CustomEvent('open-profile', { detail: playerData }));
+        }
+
+        fetchLeaderboard();
+    </script>
+</body>
+</html>
