@@ -217,7 +217,7 @@
                 let ringColor = isFirst ? 'border-yellow-400 shadow-[0_0_20px_rgba(250,204,21,0.3)]' : (rank === 2 ? 'border-gray-300' : 'border-orange-700');
                 let scale = isFirst ? 'scale-110' : 'scale-100';
 
-                let crownHtml = isFirst ? `<div class="absolute -top-12 left-1/2 transform -translate-x-1/2 text-4xl animate-bounce z-20">👑</div>` : '';
+                // Removed the crownHtml logic here
 
                 const pString = JSON.stringify(p).replace(/"/g, '&quot;').replace(/'/g, "\\'");
                 
@@ -225,7 +225,6 @@
                 <div class="flex flex-col items-center group cursor-pointer w-24 md:w-32 ${scale} transition-transform duration-300" onclick="triggerProfileModal(${pString})">
                     <div class="relative flex flex-col items-center mb-3 z-10">
                         <div class="relative inline-block">
-                            ${crownHtml}
                             <div class="w-16 h-16 md:w-20 md:h-20 rounded-full border-[3px] ${ringColor} p-0.5 bg-dark-card overflow-hidden relative z-10">
                                 <img src="${p.avatar_url}" class="w-full h-full object-cover rounded-full">
                             </div>
